@@ -3,14 +3,15 @@
 # -*- coding: utf-8 -*-
 
 """
- .d8888b.         d8888 8888888b.   .d8888b.
-d88P  Y88b       d88888 888  "Y88b d88P  Y88b
-Y88b.           d88P888 888    888 Y88b.
- "Y888b.       d88P 888 888    888  "Y888b.
-    "Y88b.    d88P  888 888    888     "Y88b.
-      "888   d88P   888 888    888       "888
-Y88b  d88P  d8888888888 888  .d88P Y88b  d88P
- "Y8888P"  d88P     888 8888888P"   "Y8888P"
+ .d8888b.        d8888 8888888b.   .d8888b.
+d88P  Y88b      d88888 888  "Y88b d88P  Y88b
+Y88b.          d88P888 888    888 Y88b.
+ "Y888b.      d88P 888 888    888  "Y888b.
+    "Y88b.   d88P  888 888    888     "Y88b.
+      "888  d88P   888 888    888       "888
+Y88b  d88P d8888888888 888  .d88P Y88b  d88P
+ "Y8888P" d88P     888 8888888P"   "Y8888P"
+
 
 
 Name: SADS Active Defence System
@@ -41,6 +42,8 @@ import base64
 import argparse
 import time
 import hashlib
+
+SERVER_ADDRESS = '127.0.0.1'
 
 
 # -------------------------------- Classes Defining --------------------------------
