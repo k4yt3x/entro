@@ -9,11 +9,11 @@ d88888b d8b   db d888888b d8888b.  .d88b.
 Y88888P VP   V8P    YP    88   YD  `Y88P'
 
 
-Name: ENTR0 Active Defence System
+Name: ENTR0 Active Defense System
 Author: K4T
-Date: 4/3/17
+Date: 4/15/17
 
-Version: 0.9 pre-alpha
+Version: 1.1 beta
 
 Description: An active defense system completed by changing
 ssh port every 10 seconds in a range of 1000~9999. The port
@@ -55,29 +55,29 @@ NH = '\033[28m'  # not hidden
 HOME = os.getenv("HOME")
 CONFPATH = HOME + '/.config/entro.conf'
 
-
 # -------------------------------- Functions Defining --------------------------------
 
+
 def validIP(s):
-    a = s.split('.')
-    if len(a) != 4:
-        return False
-    for x in a:
-        if not x.isdigit():
-            return False
-        i = int(x)
-        if i < 0 or i > 255:
-            return False
-    return True
+	a = s.split('.')
+	if len(a) != 4:
+		return False
+	for x in a:
+		if not x.isdigit():
+			return False
+		i = int(x)
+		if i < 0 or i > 255:
+			return False
+	return True
 
 
 def validDomain(hostname):
-    if len(hostname) > 255:
-        return False
-    if hostname[-1] == ".":
-        hostname = hostname[:-1]  # strip exactly one dot from the right, if present
-    allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
-    return all(allowed.match(x) for x in hostname.split("."))
+	if len(hostname) > 255:
+		return False
+	if hostname[-1] == ".":
+		hostname = hostname[:-1]  # strip exactly one dot from the right, if present
+	allowed = re.compile("(?!-)[A-Z\d-]{1,63}(?<!-)$", re.IGNORECASE)
+	return all(allowed.match(x) for x in hostname.split("."))
 
 
 def process_arguments():
@@ -110,15 +110,31 @@ def calc_port(hashed):
 	return rand_port
 
 
-def meha(prehash):
-	hash1 = hashlib.md5(prehash.encode("UTF-8")).hexdigest()
-	hash2 = hashlib.sha256(hash1.encode("UTF-8")).hexdigest()
-	hash3 = hashlib.sha384(hash2.encode("UTF-8")).hexdigest()
-	hash4 = hashlib.sha512(hash3.encode("UTF-8")).hexdigest()
-	hash5 = hashlib.sha384(hash4.encode("UTF-8")).hexdigest()
-	hash6 = hashlib.sha256(hash5.encode("UTF-8")).hexdigest()
-	hash7 = hashlib.md5(hash6.encode("UTF-8")).hexdigest()
-	return hash7
+def meha(prehash, seed):
+	finhash = ''
+	seed = str(seed)
+	for idn in range(len(seed)):
+		if seed[idn] == '1':
+			if len(finhash) == 0:
+				finhash = hashlib.md5(prehash.encode("UTF-8")).hexdigest()
+			else:
+				finhash = hashlib.md5(finhash.encode("UTF-8")).hexdigest()
+		elif seed[idn] == '2':
+			if len(finhash) == 0:
+				finhash = hashlib.sha256(prehash.encode("UTF-8")).hexdigest()
+			else:
+				finhash = hashlib.sha256(finhash.encode("UTF-8")).hexdigest()
+		elif seed[idn] == '3':
+			if len(finhash) == 0:
+				finhash = hashlib.sha384(prehash.encode("UTF-8")).hexdigest()
+			else:
+				finhash = hashlib.sha384(finhash.encode("UTF-8")).hexdigest()
+		elif seed[idn] == '4':
+			if len(finhash) == 0:
+				finhash = hashlib.sha512(prehash.encode("UTF-8")).hexdigest()
+			else:
+				finhash = hashlib.sha512(finhash.encode("UTF-8")).hexdigest()
+	return finhash
 
 
 def get_hash():
@@ -130,7 +146,7 @@ def get_hash():
 				avalon.debug(hash)
 				return hash
 		else:
-			print(avalon.FG.R + avalon.FM.BD + 'INTERNET UNAVAILABLE' + avalon.FM.RST)
+			print(avalon.FG.R + avalon.FM.BD + 'INTERNET NOT AVAILABLE' + avalon.FM.RST)
 			avalon.error('Aborting...')
 			exit(1)
 	elif args.tor:
@@ -143,7 +159,7 @@ def get_hash():
 				print(G + '[+] INFO: Got Hash: ' + str(hash) + W)
 				return hash
 		else:
-			print(avalon.FG.R + avalon.FM.BD + 'INTERNET UNAVAILABLE' + avalon.FM.RST)
+			print(avalon.FG.R + avalon.FM.BD + 'INTERNET NOT AVAILABLE' + avalon.FM.RST)
 			avalon.error('Aborting...')
 			exit(1)
 	else:
@@ -164,19 +180,19 @@ def get_hash():
 					print(avalon.FG.R + avalon.FM.BD + 'ERROR' + avalon.FM.RST)
 					avalon.error('Socket failed: ' + str(er))
 					avalon.warning('Trying HTTP...')
-					print(Y + '[+] INFO: ' + W + 'Getting Hash From Server..........', end='')
+					print(Y + '[+] INFO: ' + W + 'Getting Hash From Server using HTTP.........', end='')
 					with urllib.request.urlopen('http://' + serverIP + '/entro.hash') as response:
 						hash = response.read().decode().split('\n')[0]
 						print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
 						print(G + '[+] INFO: Got Hash: ' + str(hash) + W)
 						return hash
-				except IndexError:
+				except Exception:
 					print(avalon.FG.R + avalon.FM.BD + 'ERROR' + avalon.FM.RST)
 					avalon.error('Unable to communicate with server!')
 					avalon.error('Is Entr0 server running?')
 					exit(0)
 		else:
-			print(avalon.FG.R + avalon.FM.BD + 'INTERNET UNAVAILABLE' + avalon.FM.RST)
+			print(avalon.FG.R + avalon.FM.BD + 'INTERNET NOT AVAILABLE' + avalon.FM.RST)
 			avalon.error('Aborting...')
 			exit(1)
 
@@ -324,7 +340,7 @@ try:
 	if args.port:
 		port = args.port
 	else:
-		port = get_port(hash) + get_port(meha(hash))
+		port = get_port(hash) + get_port(meha(hash, 1423241))
 
 	if args.debug:
 		avalon.info(R + BD + 'Debug Mode Enabled')
