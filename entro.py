@@ -11,9 +11,9 @@ Y88888P VP   V8P    YP    88   YD  `Y88P'
 
 Name: ENTR0 Active Defense System
 Author: K4T
-Date: 4/15/17
+Date: 6/5/17
 
-Version: 1.1 beta
+Version: 1.2
 
 Description: An active defense system completed by changing
 ssh port every 10 seconds in a range of 1000~9999. The port
@@ -23,6 +23,10 @@ the port number and connect
 
 TODO:
 1. Complete Tor connections for urllib
+
+CHANGELOG:
+1. Now you can add new servers to existing server list
+2. Now reconfiguration is available
 
 """
 
@@ -54,6 +58,7 @@ NH = '\033[28m'  # not hidden
 
 HOME = os.getenv("HOME")
 CONFPATH = HOME + '/.config/entro.conf'
+SEED = 412314232
 
 # -------------------------------- Functions Defining --------------------------------
 
@@ -94,6 +99,8 @@ def process_arguments():
 	action_group.add_argument("-p", "--port", help="Force connecting to a specific port", action="store", default=False)
 	action_group.add_argument("-l", "--list", help="Show a list of servers", action="store_true", default=False)
 	action_group.add_argument("--tor", help="Connect Using tor", action="store_true", default=False)
+	action_group.add_argument("--addserver", help="Add another server list", action="store_true", default=False)
+	action_group.add_argument("--reconfigure", help="Reconfigure the server list", action="store_true", default=False)
 	args = parser.parse_args()
 
 
@@ -302,7 +309,7 @@ def setupWizard():
 	avalon.info('Writing configuration file to ' + CONFPATH)
 	with open(CONFPATH, 'w') as configfile:
 		config.write(configfile)  # Writes configurations
-	avalon.info('Writing success!')
+	avalon.info('Writing succeeded!')
 	avalon.info('Please relaunch application')
 	exit(0)
 
@@ -311,13 +318,22 @@ def parseConfig():
 	"""
 		Reads all configuration files
 	"""
+	if args.reconfigure:
+		if not os.path.isfile(CONFPATH):
+			avalon.error('Configuration file not found! Unable to reconfigure')
+			if avalon.ask('Launch Set-up wizard?', True):
+				avalon.info('Starting Re-Configuration')
+				setupWizard()
+		else:
+			avalon.info('Starting Re-Configuration')
+			setupWizard()
 	if not os.path.isfile(CONFPATH):
-		avalon.warning('Config File Not Found!')
+		avalon.warning('Configuration File Not Found!')
 		if avalon.ask('Start Set-up Wizard?', True):
 			setupWizard()
 		else:
 			avalon.error('No configuration file found!')
-			avalon.error('Please initialize the config file!')
+			avalon.error('Please initialize the configuration file!')
 			exit(0)
 	else:
 		config = configparser.ConfigParser()
@@ -327,11 +343,27 @@ def parseConfig():
 		return servers
 
 
+def addServer(name, address):
+	with open(CONFPATH, 'a+') as conf:
+		conf.write(name + ' = ' + 'address')
+	conf.close()
+
+
 # -------------------------------- Procedural Code --------------------------------
 try:
 	process_arguments()
 
 	servers = parseConfig()
+
+	if args.addserver:
+		avalon.info('Adding new server to server list')
+		serverName = avalon.gets('Server Name: ')
+		serverAddr = avalon.gets('Server Address: ')
+		addServer(serverName, serverAddr)
+		avalon.info('Writing succeeded!')
+		avalon.info('Please relaunch the program')
+		exit(0)
+
 	serverIP = selectServer()
 
 	hash = get_hash()
@@ -340,11 +372,11 @@ try:
 	if args.port:
 		port = args.port
 	else:
-		port = get_port(hash) + get_port(meha(hash, 1423241))
+		port = get_port(hash) + get_port(meha(hash, SEED))
 
 	if args.debug:
 		avalon.info(R + BD + 'Debug Mode Enabled')
-		avalon.info(R + BD + 'Continuely Printing Server info')
+		avalon.info(R + BD + 'Continually Printing Server info')
 		while True:
 			hash = get_hash()
 			hash = base64.b64decode(hash.encode('utf-8')).decode('utf-8')
